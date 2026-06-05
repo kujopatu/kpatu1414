@@ -15,52 +15,52 @@ mobileMenu.querySelectorAll('a').forEach(a => {
   a.addEventListener('click', () => { mobileMenu.style.display = 'none'; });
 });
 
-// Intersection observer for scroll animations
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      setTimeout(() => entry.target.classList.add('visible'), i * 120);
-      observer.unobserve(entry.target);
+// Contact form — Formspree
+async function handleSubmit() {
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const successMsg = document.getElementById('formSuccess');
+
+  const name = document.getElementById('fname').value.trim();
+  const email = document.getElementById('femail').value.trim();
+  const subject = document.getElementById('fsubject').value.trim();
+  const message = document.getElementById('fmessage').value.trim();
+
+  if (!name || !email || !subject || !message) {
+    successMsg.textContent = 'Please fill in all fields.';
+    successMsg.style.color = '#ff6b6b';
+    successMsg.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btnText.textContent = 'Sending...';
+  successMsg.style.display = 'none';
+
+  try {
+    const res = await fetch('https://formspree.io/f/xdavkpnp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, email, subject, message }),
+    });
+
+    if (res.ok) {
+      successMsg.textContent = "✓ Message sent! I'll get back to you soon.";
+      successMsg.style.color = '';
+      successMsg.style.display = 'block';
+      btnText.textContent = 'Message Sent!';
+      document.getElementById('fname').value = '';
+      document.getElementById('femail').value = '';
+      document.getElementById('fsubject').value = '';
+      document.getElementById('fmessage').value = '';
+    } else {
+      throw new Error('failed');
     }
-  });
-}, { threshold: 0.15 });
-
-document.querySelectorAll('[data-anim]').forEach(el => observer.observe(el));
-
-// Contact form — opens mailto as fallback (works without a backend)
-function handleSubmit(e) {
-  e.preventDefault();
-  const name = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const subject = document.getElementById('subject').value.trim();
-  const message = document.getElementById('message').value.trim();
-
-  const mailtoSubject = encodeURIComponent(`[Website] ${subject}`);
-  const mailtoBody = encodeURIComponent(
-    `From: ${name} <${email}>\n\n${message}`
-  );
-  const mailto = `mailto:kujopatu@yahoo.co.uk?subject=${mailtoSubject}&body=${mailtoBody}`;
-
-  window.location.href = mailto;
-
-  document.getElementById('formSuccess').style.display = 'block';
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('btnText').textContent = 'Message Sent!';
+  } catch {
+    successMsg.textContent = '✗ Something went wrong. Please email kujopatu@yahoo.co.uk directly.';
+    successMsg.style.color = '#ff6b6b';
+    successMsg.style.display = 'block';
+    btn.disabled = false;
+    btnText.textContent = 'Send Message';
+  }
 }
-
-// Active nav link highlighting
-const sections = document.querySelectorAll('section[id], header[id]');
-const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
-
-const sectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const id = entry.target.getAttribute('id');
-      navLinks.forEach(link => {
-        link.style.color = link.getAttribute('href') === `#${id}` ? 'var(--dark)' : '';
-      });
-    }
-  });
-}, { rootMargin: '-40% 0px -50%' });
-
-sections.forEach(s => sectionObserver.observe(s));
