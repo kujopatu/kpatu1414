@@ -15,17 +15,30 @@ mobileMenu.querySelectorAll('a').forEach(a => {
   a.addEventListener('click', () => { mobileMenu.style.display = 'none'; });
 });
 
-// Intersection observer for scroll animations
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      setTimeout(() => entry.target.classList.add('visible'), i * 120);
-      observer.unobserve(entry.target);
-    }
+// Scroll animations — with safety fallback so nothing stays blank
+function makeAllVisible() {
+  document.querySelectorAll('[data-anim], .skill-card, .timeline-item, .edu-card').forEach(el => {
+    el.classList.add('visible');
   });
-}, { threshold: 0.15 });
+}
 
-document.querySelectorAll('[data-anim]').forEach(el => observer.observe(el));
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('[data-anim], .skill-card, .timeline-item, .edu-card').forEach(el => observer.observe(el));
+
+  // Safety net: after 2s anything still invisible gets shown
+  setTimeout(makeAllVisible, 2000);
+} else {
+  makeAllVisible();
+}
 
 // Contact form — submits directly to inbox via Formspree
 async function handleSubmit(e) {
@@ -53,7 +66,7 @@ async function handleSubmit(e) {
     });
 
     if (res.ok) {
-      successMsg.textContent = '✓ Message sent! I\'ll get back to you soon.';
+      successMsg.textContent = "✓ Message sent! I'll get back to you soon.";
       successMsg.style.display = 'block';
       btnText.textContent = 'Message Sent!';
       document.getElementById('contactForm').reset();
@@ -78,7 +91,7 @@ const sectionObserver = new IntersectionObserver((entries) => {
     if (entry.isIntersecting) {
       const id = entry.target.getAttribute('id');
       navLinks.forEach(link => {
-        link.style.color = link.getAttribute('href') === `#${id}` ? 'var(--dark)' : '';
+        link.style.color = link.getAttribute('href') === '#' + id ? 'var(--dark)' : '';
       });
     }
   });
