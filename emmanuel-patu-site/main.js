@@ -27,25 +27,46 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('[data-anim]').forEach(el => observer.observe(el));
 
-// Contact form — opens mailto as fallback (works without a backend)
-function handleSubmit(e) {
+// Contact form — submits directly to inbox via Formspree
+async function handleSubmit(e) {
   e.preventDefault();
-  const name = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const subject = document.getElementById('subject').value.trim();
-  const message = document.getElementById('message').value.trim();
 
-  const mailtoSubject = encodeURIComponent(`[Website] ${subject}`);
-  const mailtoBody = encodeURIComponent(
-    `From: ${name} <${email}>\n\n${message}`
-  );
-  const mailto = `mailto:kujopatu@yahoo.co.uk?subject=${mailtoSubject}&body=${mailtoBody}`;
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const successMsg = document.getElementById('formSuccess');
 
-  window.location.href = mailto;
+  btn.disabled = true;
+  btnText.textContent = 'Sending...';
 
-  document.getElementById('formSuccess').style.display = 'block';
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('btnText').textContent = 'Message Sent!';
+  const data = {
+    name: document.getElementById('name').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    subject: document.getElementById('subject').value.trim(),
+    message: document.getElementById('message').value.trim(),
+  };
+
+  try {
+    const res = await fetch('https://formspree.io/f/xdavkpnp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      successMsg.textContent = '✓ Message sent! I\'ll get back to you soon.';
+      successMsg.style.display = 'block';
+      btnText.textContent = 'Message Sent!';
+      document.getElementById('contactForm').reset();
+    } else {
+      throw new Error('Server error');
+    }
+  } catch {
+    successMsg.textContent = '✗ Something went wrong. Please email me directly at kujopatu@yahoo.co.uk';
+    successMsg.style.color = '#ff6b6b';
+    successMsg.style.display = 'block';
+    btn.disabled = false;
+    btnText.textContent = 'Send Message';
+  }
 }
 
 // Active nav link highlighting
