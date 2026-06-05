@@ -15,46 +15,37 @@ mobileMenu.querySelectorAll('a').forEach(a => {
   a.addEventListener('click', () => { mobileMenu.style.display = 'none'; });
 });
 
-// Contact form — submits directly to inbox via Formspree
-async function handleSubmit(e) {
-  e.preventDefault();
-
-  const btn = document.getElementById('submitBtn');
-  const btnText = document.getElementById('btnText');
-  const successMsg = document.getElementById('formSuccess');
-
-  btn.disabled = true;
-  btnText.textContent = 'Sending...';
-
-  const data = {
-    name: document.getElementById('name').value.trim(),
-    email: document.getElementById('email').value.trim(),
-    subject: document.getElementById('subject').value.trim(),
-    message: document.getElementById('message').value.trim(),
-  };
-
-  try {
-    const res = await fetch('https://formspree.io/f/xdavkpnp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(data),
-    });
-
-    if (res.ok) {
-      successMsg.textContent = "✓ Message sent! I'll get back to you soon.";
-      successMsg.style.display = 'block';
-      btnText.textContent = 'Message Sent!';
-      document.getElementById('contactForm').reset();
-    } else {
-      throw new Error('Server error');
+// Intersection observer for scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 120);
+      observer.unobserve(entry.target);
     }
-  } catch {
-    successMsg.textContent = '✗ Something went wrong. Please email me directly at kujopatu@yahoo.co.uk';
-    successMsg.style.color = '#ff6b6b';
-    successMsg.style.display = 'block';
-    btn.disabled = false;
-    btnText.textContent = 'Send Message';
-  }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('[data-anim]').forEach(el => observer.observe(el));
+
+// Contact form — opens mailto as fallback (works without a backend)
+function handleSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const subject = document.getElementById('subject').value.trim();
+  const message = document.getElementById('message').value.trim();
+
+  const mailtoSubject = encodeURIComponent(`[Website] ${subject}`);
+  const mailtoBody = encodeURIComponent(
+    `From: ${name} <${email}>\n\n${message}`
+  );
+  const mailto = `mailto:kujopatu@yahoo.co.uk?subject=${mailtoSubject}&body=${mailtoBody}`;
+
+  window.location.href = mailto;
+
+  document.getElementById('formSuccess').style.display = 'block';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('btnText').textContent = 'Message Sent!';
 }
 
 // Active nav link highlighting
@@ -66,7 +57,7 @@ const sectionObserver = new IntersectionObserver((entries) => {
     if (entry.isIntersecting) {
       const id = entry.target.getAttribute('id');
       navLinks.forEach(link => {
-        link.style.color = link.getAttribute('href') === '#' + id ? 'var(--dark)' : '';
+        link.style.color = link.getAttribute('href') === `#${id}` ? 'var(--dark)' : '';
       });
     }
   });
