@@ -805,3 +805,12 @@ footer {
   .container { padding: 0 20px; }
   #hero { padding-left: 20px; padding-right: 20px; }
 }
+
+/* ===== FORCE VISIBILITY FIX =====  */
+.skill-card,
+.timeline-item,
+.edu-card,
+[data-anim] {
+  opacity: 1 !important;
+  transform: none !important;
+}

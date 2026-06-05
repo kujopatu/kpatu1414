@@ -15,31 +15,6 @@ mobileMenu.querySelectorAll('a').forEach(a => {
   a.addEventListener('click', () => { mobileMenu.style.display = 'none'; });
 });
 
-// Scroll animations — with safety fallback so nothing stays blank
-function makeAllVisible() {
-  document.querySelectorAll('[data-anim], .skill-card, .timeline-item, .edu-card').forEach(el => {
-    el.classList.add('visible');
-  });
-}
-
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('visible'), i * 100);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('[data-anim], .skill-card, .timeline-item, .edu-card').forEach(el => observer.observe(el));
-
-  // Safety net: after 2s anything still invisible gets shown
-  setTimeout(makeAllVisible, 2000);
-} else {
-  makeAllVisible();
-}
-
 // Contact form — submits directly to inbox via Formspree
 async function handleSubmit(e) {
   e.preventDefault();
