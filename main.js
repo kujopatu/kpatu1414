@@ -1,0 +1,88 @@
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Mobile menu
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  const open = mobileMenu.style.display === 'flex';
+  mobileMenu.style.display = open ? 'none' : 'flex';
+});
+mobileMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => { mobileMenu.style.display = 'none'; });
+});
+
+// Intersection observer for scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 120);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('[data-anim]').forEach(el => observer.observe(el));
+
+// Contact form — submits to Formspree (no email app needed)
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const successMsg = document.getElementById('formSuccess');
+  const errorMsg = document.getElementById('formError');
+
+  // Loading state
+  btn.disabled = true;
+  btnText.textContent = 'Sending…';
+  successMsg.style.display = 'none';
+  errorMsg.style.display = 'none';
+
+  const formData = {
+    name: document.getElementById('name').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    subject: document.getElementById('subject').value.trim(),
+    message: document.getElementById('message').value.trim(),
+  };
+
+  try {
+    const res = await fetch('https://formspree.io/f/xdavkpnp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+
+    if (res.ok) {
+      successMsg.style.display = 'block';
+      btnText.textContent = 'Message Sent!';
+      document.getElementById('contactForm').reset();
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (err) {
+    errorMsg.style.display = 'block';
+    btn.disabled = false;
+    btnText.textContent = 'Send Message';
+  }
+}
+
+// Active nav link highlighting
+const sections = document.querySelectorAll('section[id], header[id]');
+const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navLinks.forEach(link => {
+        link.style.color = link.getAttribute('href') === `#${id}` ? 'var(--dark)' : '';
+      });
+    }
+  });
+}, { rootMargin: '-40% 0px -50%' });
+
+sections.forEach(s => sectionObserver.observe(s));
